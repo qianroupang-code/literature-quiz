@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文学常识闯关酷刷 - Wayground 风格</title>
+  <style>
+    :root {
+      --primary: #6c5ce7;
+      --primary-dark: #4b38b3;
+      --secondary: #00b894;
+      --wrong: #ff7675;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .quiz-container {
+      background-color: var(--card-bg);
+      width: 100%;
+      max-width: 650px;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .badge {
+      background: rgba(108, 92, 231, 0.2);
+      color: #a29bfe;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      border: 1px solid var(--primary);
+    }
+
+    .score-board {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ffeaa7;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background-color: #334155;
+      border-radius: 5px;
+      margin-bottom: 25px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6c5ce7, #00b894);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .question-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .answer-input {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid #334155;
+      background-color: #0f172a;
+      color: #fff;
+      font-size: 1.1rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .answer-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.25);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background-color: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 0 var(--primary-dark);
+    }
+
+    .btn:hover {
+      background-color: #5b4bc4;
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+
+    .feedback.correct {
+      background-color: rgba(0, 184, 148, 0.2);
+      color: #55efc4;
+      border: 1px solid var(--secondary);
+    }
+
+    .feedback.wrong {
+      background-color: rgba(255, 118, 117, 0.2);
+      color: #ff7675;
+      border: 1px solid var(--wrong);
+    }
+
+    .result-card {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .result-card h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #ffeaa7;
+    }
+
+    .result-card p {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+      color: #cbd5e1;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="quiz-container">
+    <!-- 游戏进行界面 -->
+    <div id="game-screen">
+      <div class="header">
+        <span class="badge" id="category-tag">类别加载中...</span>
+        <div class="score-board">积分: <span id="score">0</span></div>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+      </div>
+
+      <div class="question-title" id="question-text">
+        题目加载中...
+      </div>
+
+      <div class="input-section">
+        <input type="text" id="user-answer" class="answer-input" placeholder="请输入你的答案..." autocomplete="off">
+        <button class="btn" id="submit-btn" onclick="checkAnswer()">提交答案 🚀</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- 结算界面 -->
+    <div id="result-screen" class="result-card hidden">
+      <h2>🎉 挑战完成！</h2>
+      <p>你的最终得分是：<strong id="final-score" style="color: #55efc4; font-size: 1.5rem;">0</strong> 分</p>
+      <button class="btn" onclick="restartQuiz()">再测一次 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // 题目数据库（汇集了全套常识重点）
+    const quizData = [
+      { category: "中国古代文学", q: "《诗经》是中国第一部_____集。", a: "诗歌" },
+      { category: "中国古代文学", q: "《楚辞》是屈原创制的新诗体，屈原代表作为《_____》。", a: "离骚" },
+      { category: "中国古代文学", q: "儒家创始人孔子，其言行记录在《_____》一书中。", a: "论语" },
+      { category: "中国古代文学", q: "《史记》是中国第一部纪传体通史，被鲁迅誉为"史家之绝唱，_____"。", a: "无韵之离骚" },
+      { category: "中国古代文学", q: "蒲松龄代表作为集六朝志怪和唐宋传奇艺术成果于一体的文言短篇小说集《_____》。", a: "聊斋志异" },
+      { category: "中国现当代文学", q: "余光中常说自己"右手写诗，_____"。", a: "左手写散文" },
+      { category: "中国现当代文学", q: "鲁迅发表了中国现代文学史上第一篇白话小说《_____》。", a: "狂人日记" },
+      { category: "中国现当代文学", q: "曹禺是中国戏剧大师，其代表作《_____》是中国戏剧文学史上影响深远的一部悲剧作品。", a: "雷雨" },
+      { category: "马华文学", q: "林连玉被大马华社尊称为"_____"。", a: "族魂" },
+      { category: "马华文学", q: "傅承得被《亚洲周刊》喻为"马来西亚文化新点子的_____"。", a: "黑手" },
+      { category: "外国文学", q: "俄国作家托尔斯泰代表作有长篇小说《战争与和平》和《_____》。", a: "安娜·卡列尼娜" },
+      { category: "外国文学", q: "法国作家莫泊桑被尊称为"_____之王"。", a: "世界短篇小说" }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let isAnswered = false;
+
+    function loadQuestion() {
+      isAnswered = false;
+      const q = quizData[currentQ];
+      document.getElementById("category-tag").innerText = q.category;
+      document.getElementById("question-text").innerText = `${currentQ + 1}. ${q.q}`;
+      document.getElementById("user-answer").value = "";
+      document.getElementById("user-answer").disabled = false;
+      document.getElementById("feedback").style.display = "none";
+      document.getElementById("submit-btn").innerText = "提交答案 🚀";
+      
+      // 更新进度条
+      const progressPercent = ((currentQ) / quizData.length) * 100;
+      document.getElementById("progress").style.width = `${progressPercent}%`;
+    }
+
+    function checkAnswer() {
+      if (isAnswered) {
+        // 进入下一题
+        currentQ++;
+        if (currentQ < quizData.length) {
+          loadQuestion();
+        } else {
+          showResult();
+        }
+        return;
+      }
+
+      const userAns = document.getElementById("user-answer").value.trim();
+      const correctAns = quizData[currentQ].a;
+      const feedbackEl = document.getElementById("feedback");
+
+      if (!userAns) return;
+
+      isAnswered = true;
+      document.getElementById("user-answer").disabled = true;
+
+      // 模糊匹配（包含关键字即可判对）
+      if (userAns.includes(correctAns) || correctAns.includes(userAns)) {
+        score += 10;
+        document.getElementById("score").innerText = score;
+        feedbackEl.className = "feedback correct";
+        feedbackEl.innerText = "✨ 回答正确！+10 分";
+      } else {
+        feedbackEl.className = "feedback wrong";
+        feedbackEl.innerText = `❌ 回答错误！正确答案是：${correctAns}`;
+      }
+
+      feedbackEl.style.display = "block";
+      document.getElementById("submit-btn").innerText = "下一题 ➔";
+    }
+
+    function showResult() {
+      document.getElementById("progress").style.width = `100%`;
+      document.getElementById("game-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+      document.getElementById("final-score").innerText = score;
+    }
+
+    function restartQuiz() {
+      currentQ = 0;
+      score = 0;
+      document.getElementById("score").innerText = "0";
+      document.getElementById("result-screen").classList.add("hidden");
+      document.getElementById("game-screen").classList.remove("hidden");
+      loadQuestion();
+    }
+
+    // 支持回车键提交
+    document.getElementById("user-answer").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+
+    // 初始化加载第一题
+    loadQuestion();
+  </script>
+</body>
+</html>
